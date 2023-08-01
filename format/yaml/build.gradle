@@ -11,6 +11,6 @@ dependencies {
 
 tasks {
     shadowJar {
-        relocate("org.yaml.snakeyaml", "${project.group}.configurate.yaml.internal.snakeyaml")
+        relocate("org.yaml.snakeyaml", "org.spongepowered.configurate.yaml.internal.snakeyaml")
     }
 }
