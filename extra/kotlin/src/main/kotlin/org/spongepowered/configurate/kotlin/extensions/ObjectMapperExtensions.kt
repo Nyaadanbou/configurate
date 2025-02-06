@@ -17,6 +17,9 @@
 package org.spongepowered.configurate.kotlin.extensions
 
 import kotlin.reflect.KClass
+import kotlin.reflect.KType
+import kotlin.reflect.jvm.javaType
+import kotlin.reflect.typeOf
 import org.spongepowered.configurate.objectmapping.ObjectMapper
 import org.spongepowered.configurate.objectmapping.ObjectMapper.Factory
 import org.spongepowered.configurate.objectmapping.ObjectMapper.Factory.Builder
@@ -24,9 +27,6 @@ import org.spongepowered.configurate.objectmapping.meta.Constraint
 import org.spongepowered.configurate.objectmapping.meta.Processor
 import org.spongepowered.configurate.serialize.TypeSerializer
 import org.spongepowered.configurate.serialize.TypeSerializerCollection
-import kotlin.reflect.KType
-import kotlin.reflect.jvm.javaType
-import kotlin.reflect.typeOf
 
 /**
  * Create an object mapper with the given [Factory] for objects of type [T], accepting parameterized
@@ -38,8 +38,8 @@ inline fun <reified T> Factory.get(): ObjectMapper<T> {
 }
 
 /**
- * Create an object mapper with the given [Factory] for objects of type [type], accepting parameterized
- * types.
+ * Create an object mapper with the given [Factory] for objects of type [type], accepting
+ * parameterized types.
  */
 fun Factory.get(type: KType): ObjectMapper<*> {
     return get(type.javaType)

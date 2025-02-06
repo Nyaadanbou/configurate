@@ -18,7 +18,6 @@ package org.spongepowered.configurate.kotlin
 
 import io.leangen.geantyref.GenericTypeReflector
 import io.leangen.geantyref.GenericTypeReflector.erase
-import io.leangen.geantyref.TypeToken
 import java.lang.reflect.AnnotatedElement
 import java.lang.reflect.AnnotatedType
 import kotlin.reflect.KAnnotatedElement
@@ -32,14 +31,14 @@ import kotlin.reflect.jvm.javaConstructor
 import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.javaGetter
 import kotlin.reflect.jvm.javaMethod
+import kotlin.reflect.jvm.javaType
+import kotlin.reflect.typeOf
 import org.spongepowered.configurate.ConfigurationNode
 import org.spongepowered.configurate.kotlin.extensions.get
 import org.spongepowered.configurate.objectmapping.FieldDiscoverer
 import org.spongepowered.configurate.objectmapping.ObjectMapper
 import org.spongepowered.configurate.objectmapping.ObjectMapper.Factory
 import org.spongepowered.configurate.util.Types.combinedAnnotations
-import kotlin.reflect.jvm.javaType
-import kotlin.reflect.typeOf
 
 private val dataClassMapperFactory =
     ObjectMapper.factoryBuilder().addDiscoverer(DataClassFieldDiscoverer).build()

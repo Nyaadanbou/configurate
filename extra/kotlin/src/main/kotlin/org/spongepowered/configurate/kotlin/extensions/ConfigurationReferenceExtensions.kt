@@ -16,12 +16,12 @@
  */
 package org.spongepowered.configurate.kotlin.extensions
 
+import kotlin.reflect.jvm.javaType
+import kotlin.reflect.typeOf
 import kotlinx.coroutines.flow.Flow
 import org.spongepowered.configurate.ScopedConfigurationNode
 import org.spongepowered.configurate.reference.ConfigurationReference
 import org.spongepowered.configurate.reference.ValueReference
-import kotlin.reflect.jvm.javaType
-import kotlin.reflect.typeOf
 
 /** Create a flow with events for every refresh of a value backing this reference */
 @Suppress("UNCHECKED_CAST")

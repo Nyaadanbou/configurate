@@ -290,7 +290,7 @@ public interface ConfigurationReference<N extends ConfigurationNode> extends Aut
     default ValueReference<?, N> referenceTo(final Type type, final Object... path) throws SerializationException {
         return this.referenceTo(type, NodePath.of(path));
     }
-    
+
     /**
      * Create a reference to the node at the provided path. The value will be
      * deserialized according to the provided TypeToken.
@@ -330,7 +330,7 @@ public interface ConfigurationReference<N extends ConfigurationNode> extends Aut
     default <T> ValueReference<T, N> referenceTo(final Class<T> type, final Object... path) throws SerializationException {
         return this.referenceTo(type, NodePath.of(path));
     }
-    
+
     /**
      * Create a reference to the node at the provided path. The value will be
      * deserialized according to the provided {@link Type}.

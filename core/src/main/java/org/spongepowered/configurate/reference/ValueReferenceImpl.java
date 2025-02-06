@@ -69,7 +69,7 @@ class ValueReferenceImpl<T extends @Nullable Object, N extends ScopedConfigurati
                        final @Nullable T def) throws SerializationException {
         this(root, path, type.getType(), def);
     }
-    
+
     ValueReferenceImpl(final ManualConfigurationReference<N> root, final NodePath path, final Class<T> type,
                        final @Nullable T def) throws SerializationException {
         this(root, path, (Type) type, def);
