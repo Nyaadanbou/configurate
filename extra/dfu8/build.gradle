@@ -1,0 +1,23 @@
+plugins {
+    id "org.spongepowered.configurate.build.component"
+}
+
+description = "Integration between Configurate and Mojang's DataFixerUpper v8 library"
+
+dependencies {
+    api projects.core
+    api libs.dfu.v8
+    compileOnly libs.slf4j
+    testImplementation projects.format.gson
+    testImplementation libs.math
+}
+
+indra {
+    javaVersions().target(17)
+}
+
+tasks.withType(Javadoc) {
+    if (options instanceof StandardJavadocDocletOptions) {
+        options.links("https://kvverti.github.io/Documented-DataFixerUpper/snapshot/")
+    }
+}
