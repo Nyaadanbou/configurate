@@ -23,7 +23,7 @@
  * there were no major API changes.</p>
  */
 @DefaultQualifier(NonNull.class)
-package org.spongepowered.configurate.extra.dfu.v4;
+package org.spongepowered.configurate.extra.dfu.v8;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.framework.qual.DefaultQualifier;
