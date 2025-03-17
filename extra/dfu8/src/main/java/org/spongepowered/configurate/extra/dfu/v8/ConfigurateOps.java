@@ -30,6 +30,8 @@ import org.spongepowered.configurate.BasicConfigurationNode;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.ConfigurationNodeFactory;
+import org.spongepowered.configurate.serialize.ScalarSerializer;
+import org.spongepowered.configurate.serialize.TypeSerializer;
 import org.spongepowered.configurate.serialize.TypeSerializerCollection;
 
 import java.nio.ByteBuffer;
@@ -336,7 +338,12 @@ public final class ConfigurateOps implements DynamicOps<ConfigurationNode> {
             } else if (value instanceof long[]) {
                 return targetOps.createLongList(LongStream.of((long[]) value));
             } else {
-                throw new IllegalArgumentException("Scalar value '" + source + "' has an unknown type: " + value.getClass().getName());
+                final @Nullable TypeSerializer<Object> serial = (TypeSerializer<Object>) source.options().serializers().get(value.getClass());
+                if (serial instanceof ScalarSerializer<Object> scalarSerial) {
+                    return targetOps.createString(scalarSerial.serializeToString(value));
+                } else {
+                    throw new IllegalArgumentException("Scalar value '" + source + "' has an unknown type: " + value.getClass().getName());
+                }
             }
         }
     }
