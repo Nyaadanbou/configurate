@@ -370,13 +370,13 @@ public final class ConfigurateOps implements DynamicOps<ConfigurationNode> {
             if (compressMaps()) {
                 final int result = input.getInt(Integer.MIN_VALUE);
                 if (result == Integer.MIN_VALUE) {
-                    return DataResult.error(() ->"Value is not a number");
+                    return DataResult.error(() -> "Value is not a number");
                 }
                 return DataResult.success(result);
             }
         }
 
-        return DataResult.error(() ->"Not a number: " + input);
+        return DataResult.error(() -> "Not a number: " + input);
     }
 
     /**
@@ -393,7 +393,7 @@ public final class ConfigurateOps implements DynamicOps<ConfigurationNode> {
             return DataResult.success(value);
         }
 
-        return DataResult.error(() ->"Not a string: " + input);
+        return DataResult.error(() -> "Not a string: " + input);
     }
 
     /**
@@ -443,7 +443,7 @@ public final class ConfigurateOps implements DynamicOps<ConfigurationNode> {
     @Override
     public DataResult<ConfigurationNode> mergeToPrimitive(final ConfigurationNode prefix, final ConfigurationNode value) {
         if (!prefix.empty()) {
-            return DataResult.error(() ->"Cannot merge " + value + " into non-empty node " + prefix);
+            return DataResult.error(() -> "Cannot merge " + value + " into non-empty node " + prefix);
         }
         return DataResult.success(guardOutputRead(value));
     }
@@ -464,7 +464,7 @@ public final class ConfigurateOps implements DynamicOps<ConfigurationNode> {
             return DataResult.success(ret);
         }
 
-        return DataResult.error(() ->"mergeToList called on a node which is not a list: " + input, input);
+        return DataResult.error(() -> "mergeToList called on a node which is not a list: " + input, input);
     }
 
     /**
@@ -485,7 +485,7 @@ public final class ConfigurateOps implements DynamicOps<ConfigurationNode> {
             return DataResult.success(ret);
         }
 
-        return DataResult.error(() ->"mergeToList called on a node which is not a list: " + input, input);
+        return DataResult.error(() -> "mergeToList called on a node which is not a list: " + input, input);
     }
 
     /**
@@ -507,7 +507,7 @@ public final class ConfigurateOps implements DynamicOps<ConfigurationNode> {
             return DataResult.success(copied);
         }
 
-        return DataResult.error(() ->"mergeToMap called on a node which is not a map: " + input, input);
+        return DataResult.error(() -> "mergeToMap called on a node which is not a map: " + input, input);
     }
 
     /**
@@ -528,7 +528,7 @@ public final class ConfigurateOps implements DynamicOps<ConfigurationNode> {
                                                                     guardOutputRead(entry.getValue()))));
         }
 
-        return DataResult.error(() ->"Not a map: " + input);
+        return DataResult.error(() -> "Not a map: " + input);
     }
 
     /**
@@ -545,7 +545,7 @@ public final class ConfigurateOps implements DynamicOps<ConfigurationNode> {
         if (input.empty() || input.isMap()) {
             return DataResult.success(new NodeMaplike(this, input.options(), input.childrenMap()));
         } else {
-            return DataResult.error(() ->"Input node is not a map");
+            return DataResult.error(() -> "Input node is not a map");
         }
     }
 
@@ -573,7 +573,7 @@ public final class ConfigurateOps implements DynamicOps<ConfigurationNode> {
                 }
             });
         } else {
-            return DataResult.error(() ->"Input node is not a list");
+            return DataResult.error(() -> "Input node is not a list");
         }
     }
 
@@ -590,7 +590,7 @@ public final class ConfigurateOps implements DynamicOps<ConfigurationNode> {
             return DataResult.success(stream);
         }
 
-        return DataResult.error(() ->"Not a list: " + input);
+        return DataResult.error(() -> "Not a list: " + input);
     }
 
     /**
@@ -679,7 +679,7 @@ public final class ConfigurateOps implements DynamicOps<ConfigurationNode> {
     @Override
     public DataResult<ConfigurationNode> get(final ConfigurationNode input, final String key) {
         final ConfigurationNode ret = input.node(key);
-        return ret.virtual() ? DataResult.error(() ->"No element " + key + " in the map " + input) : DataResult.success(guardOutputRead(ret));
+        return ret.virtual() ? DataResult.error(() -> "No element " + key + " in the map " + input) : DataResult.success(guardOutputRead(ret));
     }
 
     /**
@@ -696,7 +696,7 @@ public final class ConfigurateOps implements DynamicOps<ConfigurationNode> {
     @Override
     public DataResult<ConfigurationNode> getGeneric(final ConfigurationNode input, final ConfigurationNode key) {
         final ConfigurationNode ret = input.node(keyFrom(key));
-        return ret.virtual() ? DataResult.error(() ->"No element " + key + " in the map " + input) : DataResult.success(guardOutputRead(ret));
+        return ret.virtual() ? DataResult.error(() -> "No element " + key + " in the map " + input) : DataResult.success(guardOutputRead(ret));
     }
 
     /**
