@@ -338,12 +338,13 @@ public final class ConfigurateOps implements DynamicOps<ConfigurationNode> {
             } else if (value instanceof long[]) {
                 return targetOps.createLongList(LongStream.of((long[]) value));
             } else {
-                final @Nullable TypeSerializer<Object> serial = (TypeSerializer<Object>) source.options().serializers().get(value.getClass());
-                if (serial instanceof ScalarSerializer<Object> scalarSerial) {
-                    return targetOps.createString(scalarSerial.serializeToString(value));
-                } else {
-                    throw new IllegalArgumentException("Scalar value '" + source + "' has an unknown type: " + value.getClass().getName());
+                final Class<?> clazz = value.getClass();
+                if ((TypeSerializer<Object>) source.options().serializers().get(clazz) instanceof ScalarSerializer<Object> serial) {
+                    // we will suck here if the `value` is of a parameterized type :(
+                    // but we can avoid this problem by using TypeSerializer (not ScalarSerializer)
+                    return targetOps.createString(serial.serializeToString(value));
                 }
+                throw new IllegalArgumentException("Scalar value '" + source + "' has an unknown type: " + value.getClass().getName());
             }
         }
     }
