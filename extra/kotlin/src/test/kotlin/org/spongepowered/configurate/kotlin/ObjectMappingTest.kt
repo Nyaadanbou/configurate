@@ -21,11 +21,16 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.spongepowered.configurate.BasicConfigurationNode
 import org.spongepowered.configurate.CommentedConfigurationNode
+import org.spongepowered.configurate.ConfigurationNode
 import org.spongepowered.configurate.ConfigurationOptions
 import org.spongepowered.configurate.objectmapping.ConfigSerializable
 import org.spongepowered.configurate.objectmapping.meta.Comment
 import org.spongepowered.configurate.objectmapping.meta.Matches
 import org.spongepowered.configurate.serialize.SerializationException
+import org.spongepowered.configurate.serialize.TypeSerializer
+import java.lang.reflect.Type
+import kotlin.reflect.jvm.javaType
+import kotlin.reflect.typeOf
 
 class ObjectMappingTest {
 
@@ -83,7 +88,8 @@ class ObjectMappingTest {
     }
 
     // can't be local to the function: https://youtrack.jetbrains.com/issue/KT-42440
-    @ConfigSerializable data class Empty(val empty: String?)
+    @ConfigSerializable
+    data class Empty(val empty: String?)
 
     @ConfigSerializable
     data class ImplicitTest(val test: Set<String>, val help: Map<String, String>, val empty: Empty)
@@ -103,4 +109,111 @@ class ObjectMappingTest {
         assertEquals(mapOf<String, String>(), tester.help)
         assertEquals(null, tester.empty.empty)
     }
+
+    @ConfigSerializable
+    data class ComplexText(val test: Set<Set<String>>)
+
+    @Test
+    fun `deserialize to data class with kotlin type variance`() {
+        val node = node(
+            ConfigurationOptions.defaults()
+                .implicitInitialization(true)
+                .serializers {
+                    it.registerAnnotatedObjects(objectMapperFactory())
+                }
+        ) {
+            node("test").apply {
+                appendListNode().apply {
+                    appendListNode().set("a")
+                    appendListNode().set("b")
+                }
+                appendListNode().apply {
+                    appendListNode().set("c")
+                    appendListNode().set("d")
+                }
+            }
+        }
+
+        val tester = objectMapper<ComplexText>().load(node)
+
+        assertEquals(setOf(setOf("a", "b"), setOf("c", "d")), tester.test)
+    }
+
+    @Test
+    fun `serialize to data class with kotlin type variance`() {
+        val node = BasicConfigurationNode.root(
+            ConfigurationOptions.defaults()
+                .implicitInitialization(true)
+                .serializers {
+                    it.registerAnnotatedObjects(objectMapperFactory())
+                }
+        )
+        val tester = ComplexText(setOf(setOf("a", "b"), setOf("c", "d")))
+
+        objectMapper<ComplexText>().save(tester, node)
+
+        assertEquals(
+            setOf(
+                setOf("a", "b"),
+                setOf("c", "d"),
+            ),
+            node.node("test").childrenList().map { it.childrenList().map { it.raw() }.toSet() }.toSet()
+        )
+    }
+
+    @ConfigSerializable
+    data class ComplexData(val value: WildcardClass<*>)
+
+    data class WildcardClass<T>(val any: T) {
+        object Serializer : TypeSerializer<WildcardClass<*>> {
+            override fun deserialize(type: Type, node: ConfigurationNode): WildcardClass<*>? {
+                val value = node.rawScalar() as? String ?: return null
+                return WildcardClass(value)
+            }
+
+            override fun serialize(type: Type, obj: WildcardClass<*>?, node: ConfigurationNode) {
+                if (obj == null) {
+                    node.set(null)
+                    return
+                }
+                node.set(obj.any)
+            }
+        }
+    }
+
+    @Test
+    fun `serialize wildcard type`() {
+        val node = node(
+            ConfigurationOptions.defaults()
+                .implicitInitialization(true)
+                .serializers {
+                    it.register({ it == typeOf<WildcardClass<*>>().javaType }, WildcardClass.Serializer)
+                    it.registerAnnotatedObjects(objectMapperFactory())
+                }
+        ) {}
+        val tester = ComplexData(WildcardClass("test"))
+
+        objectMapper<ComplexData>().save(tester, node)
+
+        assertEquals("test", node.node("value").raw())
+    }
+
+    @Test
+    fun `deserialize wildcard type`() {
+        val node = node(
+            ConfigurationOptions.defaults()
+                .implicitInitialization(true)
+                .serializers {
+                    it.register({ it == typeOf<WildcardClass<*>>().javaType }, WildcardClass.Serializer)
+                    it.registerAnnotatedObjects(objectMapperFactory())
+                }
+        ) {
+            node("value").set("test")
+        }
+
+        val tester = objectMapper<ComplexData>().load(node)
+
+        assertEquals("test", tester.value.any)
+    }
+
 }

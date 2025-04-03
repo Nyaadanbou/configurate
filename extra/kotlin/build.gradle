@@ -63,4 +63,6 @@ dependencies {
     implementation libs.kotlin.reflect
     // This version has to be kept in sync with the Kotlin plugin version
     implementation libs.kotlin.coroutines
+    testImplementation libs.kotlin.reflect
+    testImplementation libs.kotlin.coroutines
 }

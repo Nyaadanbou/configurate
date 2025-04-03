@@ -18,27 +18,21 @@ package org.spongepowered.configurate.kotlin
 
 import io.leangen.geantyref.GenericTypeReflector
 import io.leangen.geantyref.GenericTypeReflector.erase
-import java.lang.reflect.AnnotatedElement
-import java.lang.reflect.AnnotatedType
-import kotlin.reflect.KAnnotatedElement
-import kotlin.reflect.KFunction
-import kotlin.reflect.KParameter
-import kotlin.reflect.KProperty
-import kotlin.reflect.KProperty1
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.full.primaryConstructor
-import kotlin.reflect.jvm.javaConstructor
-import kotlin.reflect.jvm.javaField
-import kotlin.reflect.jvm.javaGetter
-import kotlin.reflect.jvm.javaMethod
-import kotlin.reflect.jvm.javaType
-import kotlin.reflect.typeOf
+import io.leangen.geantyref.TypeFactory
 import org.spongepowered.configurate.ConfigurationNode
 import org.spongepowered.configurate.kotlin.extensions.get
 import org.spongepowered.configurate.objectmapping.FieldDiscoverer
 import org.spongepowered.configurate.objectmapping.ObjectMapper
 import org.spongepowered.configurate.objectmapping.ObjectMapper.Factory
 import org.spongepowered.configurate.util.Types.combinedAnnotations
+import java.lang.reflect.AnnotatedElement
+import java.lang.reflect.AnnotatedType
+import java.lang.reflect.ParameterizedType
+import java.lang.reflect.WildcardType
+import kotlin.reflect.*
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.jvm.*
 
 private val dataClassMapperFactory =
     ObjectMapper.factoryBuilder().addDiscoverer(DataClassFieldDiscoverer).build()
@@ -95,9 +89,8 @@ private object DataClassFieldDiscoverer : FieldDiscoverer<MutableMap<KParameter,
 
         val annotatedTypes = constructor.javaConstructor!!.annotatedParameterTypes
         val properties = klass.memberProperties
-        constructor.parameters.asSequence().zip(annotatedTypes.asSequence()).forEach { (param, type)
-            ->
-            val resolvedType = GenericTypeReflector.resolveType(type, target)
+        constructor.parameters.asSequence().zip(annotatedTypes.asSequence()).forEach { (param, type) ->
+            val resolvedType = GenericTypeReflector.resolveType(type, target).normalize()
             val field = properties.first { it.name == param.name }
 
             @Suppress("UNCHECKED_CAST")
@@ -137,6 +130,69 @@ private object DataClassFieldDiscoverer : FieldDiscoverer<MutableMap<KParameter,
 }
 
 // thanks kotlin :(
+
+/**
+ * 移除类型中不必要的通配符.
+ */
+private fun AnnotatedType.normalize(): AnnotatedType {
+    if (type !is ParameterizedType) {
+        return this
+    }
+
+    val paramType = type as ParameterizedType
+    val rawType = paramType.rawType
+    val typeArgs = paramType.actualTypeArguments
+
+    // 检查是否有需要处理的通配符类型
+    val hasWildcards = typeArgs.any { it is WildcardType }
+    if (!hasWildcards) {
+        return this
+    }
+
+    // 处理通配符
+    val normalizedArgs = typeArgs.map { arg ->
+        when {
+            // 处理有界通配符
+            arg is WildcardType &&
+                arg.lowerBounds.isEmpty() &&
+                arg.upperBounds.size == 1 &&
+                arg.upperBounds[0] != Object::class.java
+                -> {
+                // 有上界的通配符 (即 ? extends E) - 使用其上界
+                GenericTypeReflector.annotate(arg.upperBounds[0])
+            }
+            // 处理无界通配符 (即 * 或 ?)
+            arg is WildcardType &&
+                arg.lowerBounds.isEmpty() &&
+                (arg.upperBounds.isEmpty() || arg.upperBounds[0] == Object::class.java)
+                -> {
+                // 保留通配符特性
+                GenericTypeReflector.annotate(arg)
+            }
+            // 处理下界通配符
+            arg is WildcardType &&
+                arg.lowerBounds.isNotEmpty()
+                -> {
+                // 有下界的通配符 (即 ? super E)
+                GenericTypeReflector.annotate(arg)
+            }
+
+            else -> {
+                // 其他类型直接处理
+                GenericTypeReflector.annotate(arg)
+            }
+        }
+    }.toTypedArray()
+
+    // 创建一个新的处理过的类型
+    val newType = TypeFactory.parameterizedAnnotatedClass(
+        rawType as Class<*>,
+        annotations,
+        *normalizedArgs
+    )
+
+    return newType
+}
 
 /** Get a kotlin annotated element as a Java one */
 private val KAnnotatedElement.javaElement: AnnotatedElement
