@@ -93,7 +93,7 @@ indra {
     }
     apache2License()
 
-    publishAllTo("nyaadanbouRelease", "https://repo.mewcraft.cc/releases")
+    publishAllTo("nyaadanbouReleases", "https://repo.mewcraft.cc/releases")
 
     configurePublications {
         artifactId = archiveName
